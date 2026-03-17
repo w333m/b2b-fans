@@ -32,7 +32,6 @@ export default {
   },
   mounted (){
     this.setupWebSocket();
-    this.checkForRepoUpdate();
   },
   methods: {
     setupWebSocket() {
