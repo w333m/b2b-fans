@@ -174,12 +174,6 @@ def serialize_umamusume_task(t):
         except Exception:
             attachment['ura_config'] = None
 
-        try:
-            aoharu = getattr(sc, 'aoharu_config', None) if sc else None
-            attachment['aoharu_config'] = to_jsonable(aoharu) if aoharu is not None else None
-        except Exception:
-            attachment['aoharu_config'] = None
-
         return attachment
     except Exception:
         return None

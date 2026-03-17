@@ -77,7 +77,6 @@ TITLE = [
     "Factor Confirmation", ##handles the factor confirmation popup dialog (Fujikiseki Show) # TITLE[33]
     # Limited Time: Fujikiseki Show
     "New Difficulty Unlocked", # TITLE[34]
-    # Aoharu Cup
     "Auto Formation", # TITLE[35]
     "Battle Confirmation", # TITLE[36]
     "Rewards Collected", # TITLE[37] after career if theres story

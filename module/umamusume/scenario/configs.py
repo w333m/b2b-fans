@@ -26,30 +26,9 @@ class UraConfig:
         else:
             return self.skill_event_weight[2]
 
-class AoharuConfig:
-
-    preliminary_round_selections: list[int]
-    aoharu_team_name_selection: int
-
-    def __init__(self, config: dict):
-        prs = config.get("preliminaryRoundSelections", config.get("preliminary_round_selections"))
-        team = config.get("aoharuTeamNameSelection", config.get("aoharu_team_name_selection"))
-        if prs is None or team is None:
-            raise ValueError("Wrong configuration: must configure 'preliminaryRoundSelections'/'preliminary_round_selections' and 'aoharuTeamNameSelection'/'aoharu_team_name_selection'")
-        self.preliminary_round_selections = prs
-        self.aoharu_team_name_selection = team
-
-    """ Get opponent index for specified round, index starts from 0, preliminary round 1 is 0 """
-    def get_opponent(self, round_index: int) -> int:
-        if round_index < 0 or round_index >= len(self.preliminary_round_selections):
-            raise IndexError("Round index out of range")
-        return self.preliminary_round_selections[round_index]
-    
 class ScenarioConfig:
     """ Configuration for all scenarios """
     ura_config: UraConfig = None
-    aoharu_config: AoharuConfig = None
-    
-    def __init__(self, ura_config: UraConfig = None, aoharu_config: AoharuConfig = None):
+
+    def __init__(self, ura_config: UraConfig = None):
         self.ura_config = ura_config
-        self.aoharu_config = aoharu_config

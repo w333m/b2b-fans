@@ -141,3 +141,7 @@ brayscript/
 scripts/
 
 .agent/rules/
+
+# Claude Code and Kiro IDE
+.claude/
+.kiro/

@@ -31,11 +31,6 @@ event_map: dict[str, Union[callable, int]] = {
     "新年参拜": scenario_event_2,
     "新年祈福": scenario_event_2,
 
-    # Youth Cup events
-    "新手教程": 2,
-    "团队成员终于集结完毕!": aoharuhai_team_name_event,
-    "A Team at Last": aoharuhai_team_name_event,
-            
     # Note: Global Server events will be handled by auto_research_event_choice()
 }
 
@@ -509,11 +504,7 @@ def get_event_choice(ctx: UmamusumeContext, event_name: str) -> int:
             else:
                 log.warning("Event [%s] does not provide processing logic", event_name_normalized)
                 return 1
-    
-    # Youth Cup events
-    if event_name_normalized in ["aoharuhai_team_name_event"]:
-        return event_map[event_name_normalized](ctx)
-    
+
     # NEW: Try local database first (FAST - no web scraping)
     log.info(f"🔍 Checking local database for event '{event_name}'...")
     local_choice = get_local_event_choice(ctx, event_name)

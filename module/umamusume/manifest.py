@@ -13,7 +13,6 @@ from module.umamusume.script.cultivate_task.info import script_info
 from module.umamusume.protocol.preset import AddPresetRequest, DeletePresetRequest
 from module.umamusume.task import UmamusumeTaskType, build_task
 from module.umamusume.user_data import read_presets, write_preset, delete_preset_by_name
-from module.umamusume.script.cultivate_task.event.manifest import load_events_database
 
 script_dicts: Dict[UmamusumeTaskType, dict] = {
     UmamusumeTaskType.UMAMUSUME_TASK_TYPE_CULTIVATE: {
@@ -30,12 +29,6 @@ script_dicts: Dict[UmamusumeTaskType, dict] = {
         CULTIVATE_EVENT_UMAMUSUME: script_cultivate_event,
         CULTIVATE_EVENT_SUPPORT_CARD: script_cultivate_event,
         CULTIVATE_EVENT_SCENARIO: script_cultivate_event,
-        AOHARUHAI_RACE_FINAL_START: script_aoharuhai_race_final_start,
-        AOHARUHAI_RACE_SELECT_OPPONENT: script_aoharuhai_race_select_oponent,
-        AOHARUHAI_RACE: script_aoharuhai_race,
-        AOHARUHAI_RACE_INRACE: script_aoharuhai_race_inrace,
-        AOHARUHAI_RACE_END: script_aoharuhai_race_end,
-        AOHARUHAI_RACE_SCHEDULE: script_aoharuhai_race_schedule,
         CULTIVATE_GOAL_RACE: script_cultivate_goal_race,
         CULTIVATE_RACE_LIST: script_cultivate_race_list,
         BEFORE_RACE: script_cultivate_before_race,
@@ -116,16 +109,3 @@ def delete_preset(req: DeletePresetRequest):
     # best-effort delete; return regardless
     delete_preset_by_name(req.name)
     return
-
-
-@server.get("/umamusume/events")
-def get_events():
-    try:
-        db = load_events_database()
-        if isinstance(db, dict):
-            names = sorted(list(db.keys()))
-        else:
-            names = []
-        return {"events": names}
-    except Exception:
-        return {"events": []}

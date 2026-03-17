@@ -248,125 +248,67 @@ def try_alt_cost_regions(skill_info_img):
 
 
 def parse_date(img, ctx: UmamusumeContext) -> int:
-    # Youth Cup and URA UI positions are different
-    if ctx.cultivate_detail.scenario.scenario_type() == ScenarioType.SCENARIO_TYPE_AOHARUHAI:
-        sub_img_date = ctx.cultivate_detail.scenario.get_date_img(img)
-        sub_img_date = cv2.copyMakeBorder(sub_img_date, 20, 20, 20, 20, cv2.BORDER_CONSTANT, None, (255, 255, 255))
-        date_text = ocr_line(sub_img_date)
-        
-        # Debug: Log the extracted date text
-        log.info(f"🔍 Extracted date text: '{date_text}'")
-        
-        year_text = ""
-        for text in DATE_YEAR:
-            if date_text.__contains__(text):
-                year_text = text
+    # URA scenario date parsing
+    sub_img_date = ctx.cultivate_detail.scenario.get_date_img(img)
+    sub_img_date = cv2.copyMakeBorder(sub_img_date, 20, 20, 20, 20, cv2.BORDER_CONSTANT, None, (255, 255, 255))
+    date_text = ocr_line(sub_img_date)
 
-        if year_text == "":
-            year_text = find_similar_text(date_text, DATE_YEAR)
-            log.info(f"🔍 Similar text found: '{year_text}'")
+    # Debug: Log the extracted date text for URA
+    log.info(f"🔍 URA Extracted date text: '{date_text}'")
 
-        if year_text == DATE_YEAR[3]:
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            if image_match(img, URA_DATE_1).find_match:
-                return 97
-            elif image_match(img, URA_DATE_2).find_match:
-                return 98
-            else:
-                return 99
+    # Special handling for "Finale Season" in URA championship
+    if "Finale Season" in date_text or "Finale" in date_text:
+        log.info("🏆 URA Finale Season detected - checking championship phase")
 
-        if year_text == "":
-            log.warning(f"❌ No year text found in date: '{date_text}'")
-            return -1
+        # Check specific coordinates for URA championship phase text
+        championship_phase_img = img[74:100, 250:575]  # x: 250, y: 74, width: 325, height: 26
+        championship_phase_img = cv2.copyMakeBorder(championship_phase_img, 20, 20, 20, 20, cv2.BORDER_CONSTANT, None, (255, 255, 255))
+        championship_phase_text = ocr_line(championship_phase_img)
+        log.info(f"🔍 URA Championship phase text: '{championship_phase_text}'")
 
-        month_text = ""
-        for text in DATE_MONTH:
-            if date_text.__contains__(text):
-                month_text = text
-        if month_text == "":
-            month_text = find_similar_text(date_text, DATE_MONTH)
-
-        if month_text != DATE_MONTH[0]:
-            date_id = DATE_YEAR.index(year_text) * 24 + DATE_MONTH.index(month_text)
+        # Determine URA championship phase based on OCR text
+        if "URA Finale Qualifier" in championship_phase_text or "Qualifier" in championship_phase_text:
+            log.info("🏆 URA Finals Qualifier detected")
+            return 73  # Qualifier date
+        elif "URA Finale Semifinal" in championship_phase_text or "Semifinal" in championship_phase_text:
+            log.info("🏆 URA Finals Semifinal detected")
+            return 76  # Semi-final date
+        elif "URA Finale Finals" in championship_phase_text or "Finals" in championship_phase_text:
+            log.info("🏆 URA Finals Final detected")
+            return 79  # Final date
         else:
-            sub_img_turn_to_race = ctx.cultivate_detail.scenario.get_turn_to_race_img(img)
-            sub_img_turn_to_race = cv2.copyMakeBorder(sub_img_turn_to_race, 20, 20, 20, 20, cv2.BORDER_CONSTANT, None,
-                                                      (255, 255, 255))
-            turn_to_race_text = ocr_line(sub_img_turn_to_race)
-            if turn_to_race_text == "Race Day":
-                log.debug("Debut race day")
-                return 12
-            turn_to_race_text = re.sub("\\D", "", turn_to_race_text)
-            if turn_to_race_text == '':
-                log.warning("Debut race date recognition exception")
-                return 12 - (len(ctx.cultivate_detail.turn_info_history) + 1)
-            date_id = 12 - int(turn_to_race_text)
-            if date_id < 1:
-                log.warning("Debut race date recognition exception")
-                return 12 - (len(ctx.cultivate_detail.turn_info_history) + 1)
-        return date_id
-    else:
-        # URA scenario date parsing
-        sub_img_date = ctx.cultivate_detail.scenario.get_date_img(img)
-        sub_img_date = cv2.copyMakeBorder(sub_img_date, 20, 20, 20, 20, cv2.BORDER_CONSTANT, None, (255, 255, 255))
-        date_text = ocr_line(sub_img_date)
-        
-        # Debug: Log the extracted date text for URA
-        log.info(f"🔍 URA Extracted date text: '{date_text}'")
-        
-        # Special handling for "Finale Season" in URA championship
-        if "Finale Season" in date_text or "Finale" in date_text:
-            log.info("🏆 URA Finale Season detected - checking championship phase")
-            
-            # Check specific coordinates for URA championship phase text
-            championship_phase_img = img[74:100, 250:575]  # x: 250, y: 74, width: 325, height: 26
-            championship_phase_img = cv2.copyMakeBorder(championship_phase_img, 20, 20, 20, 20, cv2.BORDER_CONSTANT, None, (255, 255, 255))
-            championship_phase_text = ocr_line(championship_phase_img)
-            log.info(f"🔍 URA Championship phase text: '{championship_phase_text}'")
-            
-            # Determine URA championship phase based on OCR text
-            if "URA Finale Qualifier" in championship_phase_text or "Qualifier" in championship_phase_text:
-                log.info("🏆 URA Finals Qualifier detected")
-                return 73  # Qualifier date
-            elif "URA Finale Semifinal" in championship_phase_text or "Semifinal" in championship_phase_text:
-                log.info("🏆 URA Finals Semifinal detected")
-                return 76  # Semi-final date
-            elif "URA Finale Finals" in championship_phase_text or "Finals" in championship_phase_text:
-                log.info("🏆 URA Finals Final detected")
-                return 79  # Final date
-            else:
-                log.warning(f"❌ Unknown URA championship phase: '{championship_phase_text}'")
-                # Fallback to qualifier if unknown
-                return 73
-        
-        year_text = ""
-        for text in DATE_YEAR:
-            if date_text.__contains__(text):
-                year_text = text
+            log.warning(f"❌ Unknown URA championship phase: '{championship_phase_text}'")
+            # Fallback to qualifier if unknown
+            return 73
 
-        if year_text == "":
-            year_text = find_similar_text(date_text, DATE_YEAR)
-            log.info(f"🔍 URA Similar text found: '{year_text}'")
+    year_text = ""
+    for text in DATE_YEAR:
+        if date_text.__contains__(text):
+            year_text = text
 
-        if year_text == DATE_YEAR[3]:
-            img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-            if image_match(img, URA_DATE_1).find_match:
-                return 97
-            elif image_match(img, URA_DATE_2).find_match:
-                return 98
-            else:
-                return 99
+    if year_text == "":
+        year_text = find_similar_text(date_text, DATE_YEAR)
+        log.info(f"🔍 URA Similar text found: '{year_text}'")
 
-        if year_text == "":
-            log.warning(f"❌ URA No year text found in date: '{date_text}'")
-            return -1
+    if year_text == DATE_YEAR[3]:
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        if image_match(img, URA_DATE_1).find_match:
+            return 97
+        elif image_match(img, URA_DATE_2).find_match:
+            return 98
+        else:
+            return 99
 
-        month_text = ""
-        for text in DATE_MONTH:
-            if date_text.__contains__(text):
-                month_text = text
-        if month_text == "":
-            month_text = find_similar_text(date_text, DATE_MONTH)
+    if year_text == "":
+        log.warning(f"❌ URA No year text found in date: '{date_text}'")
+        return -1
+
+    month_text = ""
+    for text in DATE_MONTH:
+        if date_text.__contains__(text):
+            month_text = text
+    if month_text == "":
+        month_text = find_similar_text(date_text, DATE_MONTH)
 
         if month_text != DATE_MONTH[0]:
             date_id = DATE_YEAR.index(year_text) * 24 + DATE_MONTH.index(month_text)

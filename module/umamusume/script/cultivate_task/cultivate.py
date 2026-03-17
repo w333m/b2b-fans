@@ -542,12 +542,6 @@ def script_cultivate_training_select(ctx: UmamusumeContext):
         log.info(f"lv2: {w_lv2}")
         log.info(f"Rainbows: {w_rainbow}")
         log.info(f"Hint: {w_hint}")
-        try:
-            if ctx.cultivate_detail.scenario.scenario_type() == ScenarioType.SCENARIO_TYPE_AOHARUHAI:
-                log.info(f"Special Training score: {w_special}")
-                log.info(f"Spirit Explosion scores: {se_weights}")
-        except Exception:
-            pass
 
         from bot.conn.fetch import read_energy
         try:
@@ -642,19 +636,7 @@ def script_cultivate_training_select(ctx: UmamusumeContext):
             if pal_count:
                 log.info(f"  Pal cards: {pal_count}")
             try:
-                if ctx.cultivate_detail.scenario.scenario_type() == ScenarioType.SCENARIO_TYPE_AOHARUHAI:
-                    if special_counts[idx] > 0:
-                        log.info(f"  Special training available: {special_counts[idx]} cards")
-                    if spirit_counts[idx] > 0:
-                        try:
-                            d = int(ctx.cultivate_detail.turn_info.date)
-                        except Exception:
-                            d = -1
-                        if isinstance(d, int) and d >= 46:
-                            pct = min(30, d - 45)
-                            log.info(f"  Spirit explosion available: {spirit_counts[idx]} cards (-{pct}% score: date penalty)")
-                        else:
-                            log.info(f"  Spirit explosion available: {spirit_counts[idx]} cards")
+                pass
             except Exception:
                 pass
             hint_bonus = 0.0
@@ -674,11 +656,7 @@ def script_cultivate_training_select(ctx: UmamusumeContext):
             except Exception:
                 se_w = 0.0
 
-            try:
-                is_aoharu = (ctx.cultivate_detail.scenario.scenario_type() == ScenarioType.SCENARIO_TYPE_AOHARUHAI)
-            except Exception:
-                is_aoharu = False
-            if is_aoharu and idx == 4 and se_w != 0.0 and spirit_counts[idx] > 0:
+            if idx == 4 and se_w != 0.0 and spirit_counts[idx] > 0:
                 try:
                     energy = int(read_energy())
                     if energy == 0:
@@ -1068,17 +1046,6 @@ def script_cultivate_event(ctx: UmamusumeContext):
         pass
     force_choice_index = None
     try:
-        if isinstance(event_name, str) and 'team at last' in event_name.lower():
-            from module.umamusume.script.cultivate_task.event.scenario_event import aoharuhai_team_name_event
-            res = aoharuhai_team_name_event(ctx)
-            if isinstance(res, int) and res > 0:
-                force_choice_index = int(res)
-            else:
-                return
-    except Exception:
-        pass
-    
-    try:
         _, selectors = parse_cultivate_event(ctx, img)
     except Exception:
         selectors = []
@@ -1154,43 +1121,6 @@ def script_cultivate_event(ctx: UmamusumeContext):
             pass
     if not clicked:
         return
-
-def script_aoharuhai_race(ctx: UmamusumeContext):
-    img = ctx.ctrl.get_screen(to_gray=True)
-    if image_match(img, UI_AOHARUHAI_RACE_1).find_match:
-        race_index = 0
-    elif image_match(img, UI_AOHARUHAI_RACE_2).find_match:
-        race_index = 1
-    elif image_match(img, UI_AOHARUHAI_RACE_3).find_match:
-        race_index = 2
-    elif image_match(img, UI_AOHARUHAI_RACE_4).find_match:
-        race_index = 3
-    elif image_match(img, UI_AOHARUHAI_RACE_5).find_match:
-        race_index = 4
-    else:
-        ctx.ctrl.click(360, 1180, "Confirm race result")
-        return
-    
-    ctx.cultivate_detail.turn_info.aoharu_race_index = race_index
-    return
-
-def script_aoharuhai_race_final_start(ctx: UmamusumeContext):
-    ctx.ctrl.click(360, 980, "Confirm final opponent")
-
-def script_aoharuhai_race_select_oponent(ctx: UmamusumeContext):
-    return
-
-def script_aoharuhai_race_confirm(ctx: UmamusumeContext):
-    ctx.ctrl.click(520, 920, "Confirm battle")
-
-def script_aoharuhai_race_inrace(ctx: UmamusumeContext):
-    ctx.ctrl.click(520, 1180, "View battle result")
-
-def script_aoharuhai_race_end(ctx: UmamusumeContext):
-    ctx.ctrl.click(350, 1110, "Confirm race end")
-
-def script_aoharuhai_race_schedule(ctx: UmamusumeContext):
-    ctx.ctrl.click(360, 1100, "End Youth Cup race")
 
 def script_cultivate_goal_race(ctx: UmamusumeContext):
     log.info("Entering goal race function")

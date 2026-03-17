@@ -116,9 +116,6 @@ class TurnInfo:
     turn_info_logged: bool
     turn_learn_skill_done: bool
 
-    # Youth Cup
-    aoharu_race_index: int
-
     def __init__(self):
         self.date = -1
         self.parse_train_info_finish = False
@@ -132,7 +129,6 @@ class TurnInfo:
         self.turn_operation = None
         self.turn_info_logged = False
         self.turn_learn_skill_done = False
-        self.aoharu_race_index = 0
 
     def log_turn_info(self, scenario_type: ScenarioType):
         log.info("Current turn time " + str(self.date))
