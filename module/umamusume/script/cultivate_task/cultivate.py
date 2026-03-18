@@ -358,6 +358,11 @@ def script_cultivate_training_select(ctx: UmamusumeContext):
         ctx.ctrl.click_by_point(RETURN_TO_CULTIVATE_MAIN_MENU)
         return
 
+    if ctx.cultivate_detail.turn_info.date is None:
+        log.warning("Date not extracted from OCR")
+        ctx.ctrl.click_by_point(RETURN_TO_CULTIVATE_MAIN_MENU)
+        return
+
     turn_op = ctx.cultivate_detail.turn_info.turn_operation
 
     if turn_op is not None:
@@ -391,6 +396,17 @@ def script_cultivate_training_select(ctx: UmamusumeContext):
         return
 
     if not ctx.cultivate_detail.turn_info.parse_train_info_finish:
+        date = ctx.cultivate_detail.turn_info.date
+
+        # Skip training parsing during Pre-Debut, just select Speed
+        if date == 1:
+            log.info("Pre-Debut phase - selecting Speed only")
+            ctx.ctrl.click_by_point(TO_TRAINING_SELECT)
+            time.sleep(0.5)
+            ctx.ctrl.click_by_point(TRAINING_POINT_LIST[0])
+            time.sleep(0.3)
+            return
+
         def _parse_training_in_thread(ctx, img, train_type):
             """Helper function to run parsing in a separate thread."""
             parse_training_result(ctx, img, train_type)
@@ -465,7 +481,7 @@ def script_cultivate_training_select(ctx: UmamusumeContext):
                         img = ctx.ctrl.get_screen()
                         retry += 1
                     if retry == max_retry:
-                        log.info(f"🚫 Training {TrainingType(i + 1).name} is restricted by game - skipping")
+                        log.info(f"🚫 Training {TrainingType(i + 1).name} is restricted - skipping")
                         _clear_training(ctx, TrainingType(i + 1))
                         continue
 
@@ -479,7 +495,7 @@ def script_cultivate_training_select(ctx: UmamusumeContext):
         for thread in threads:
             thread.join()
 
-        
+
         date = ctx.cultivate_detail.turn_info.date
         sv = getattr(ctx.cultivate_detail, 'score_value', [
             [0.11, 0.10, 0.01, 0.09],
@@ -785,29 +801,29 @@ def script_cultivate_training_select(ctx: UmamusumeContext):
             except Exception:
                 pass
 
-        # max_score = max(computed_scores) if len(computed_scores) == 5 else 0.0
-        # eps = 1e-9
-        # # relevant_counts = [getattr(ctx.cultivate_detail.turn_info.training_info_list[i], 'relevant_count', 0) for i in range(5)]
-        # wit_fallback_threshold = getattr(ctx.cultivate_detail, 'wit_fallback_threshold', 0.01)
-        # if all(s < wit_fallback_threshold for s in computed_scores):
-        #     log.info(f"no good training option (all scores < {wit_fallback_threshold:.2f}). umamusume is a wit game")
-        #     chosen_idx = 4
-        # elif date >= 61 and sum(rbc_counts) == 0:
-        #     chosen_idx = 4
-        # else:
-        #     if date in (35, 36, 59, 60):
-        #         best_idx_tmp = int(np.argmax(computed_scores))
-        #         best_score_tmp = computed_scores[best_idx_tmp]
-        #         summer_threshold = getattr(ctx.cultivate_detail, 'summer_score_threshold', 0.34)
-        #         if best_score_tmp < summer_threshold:
-        #             log.info(f"Low training score before summer, conserving energy (score < {summer_threshold:.2f})")
-        #             chosen_idx = 4
-        #         else:
-        #             ties = [i for i, v in enumerate(computed_scores) if abs(v - max_score) < eps]
-        #             chosen_idx = 4 if 4 in ties else (min(ties) if len(ties) > 0 else best_idx_tmp)
-        #     else:
-        #         ties = [i for i, v in enumerate(computed_scores) if abs(v - max_score) < eps]
-        #         chosen_idx = 4 if 4 in ties else (min(ties) if len(ties) > 0 else int(np.argmax(computed_scores)))
+        max_score = max(computed_scores) if len(computed_scores) == 5 else 0.0
+        eps = 1e-9
+        # relevant_counts = [getattr(ctx.cultivate_detail.turn_info.training_info_list[i], 'relevant_count', 0) for i in range(5)]
+        wit_fallback_threshold = getattr(ctx.cultivate_detail, 'wit_fallback_threshold', 0.01)
+        if all(s < wit_fallback_threshold for s in computed_scores):
+            log.info(f"no good training option (all scores < {wit_fallback_threshold:.2f}). umamusume is a wit game")
+            chosen_idx = 4
+        elif date >= 61 and sum(rbc_counts) == 0:
+            chosen_idx = 4
+        else:
+            if date in (35, 36, 59, 60):
+                best_idx_tmp = int(np.argmax(computed_scores))
+                best_score_tmp = computed_scores[best_idx_tmp]
+                summer_threshold = getattr(ctx.cultivate_detail, 'summer_score_threshold', 0.34)
+                if best_score_tmp < summer_threshold:
+                    log.info(f"Low training score before summer, conserving energy (score < {summer_threshold:.2f})")
+                    chosen_idx = 4
+                else:
+                    ties = [i for i, v in enumerate(computed_scores) if abs(v - max_score) < eps]
+                    chosen_idx = 4 if 4 in ties else (min(ties) if len(ties) > 0 else best_idx_tmp)
+            else:
+                ties = [i for i, v in enumerate(computed_scores) if abs(v - max_score) < eps]
+                chosen_idx = 4 if 4 in ties else (min(ties) if len(ties) > 0 else int(np.argmax(computed_scores)))
 
         # Before Junior Make Debut, only speed
         if ctx.cultivate_detail.turn_info.date <= 11:
@@ -1910,6 +1926,8 @@ def script_not_found_ui(ctx: UmamusumeContext):
         pass
     log.debug("🔍 No specific UI detected - using default fallback click")
     ctx.ctrl.click(719, 1, "Default fallback click")
+
+
 
 
 def script_receive_cup(ctx: UmamusumeContext):

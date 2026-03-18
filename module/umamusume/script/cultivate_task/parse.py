@@ -256,6 +256,11 @@ def parse_date(img, ctx: UmamusumeContext) -> int:
     # Debug: Log the extracted date text for URA
     log.info(f"🔍 URA Extracted date text: '{date_text}'")
 
+    # Handle Pre-Debut phase
+    if "Pre-Debut" in date_text:
+        log.info("📅 URA Pre-Debut phase detected")
+        return 1
+
     # Special handling for "Finale Season" in URA championship
     if "Finale Season" in date_text or "Finale" in date_text:
         log.info("🏆 URA Finale Season detected - checking championship phase")
@@ -310,24 +315,25 @@ def parse_date(img, ctx: UmamusumeContext) -> int:
     if month_text == "":
         month_text = find_similar_text(date_text, DATE_MONTH)
 
-        if month_text != DATE_MONTH[0]:
-            date_id = DATE_YEAR.index(year_text) * 24 + DATE_MONTH.index(month_text)
-        else:
-            sub_img_turn_to_race = ctx.cultivate_detail.scenario.get_turn_to_race_img(img)
-            sub_img_turn_to_race = cv2.copyMakeBorder(sub_img_turn_to_race, 20, 20, 20, 20, cv2.BORDER_CONSTANT, None,
-                                                      (255, 255, 255))
-            turn_to_race_text = ocr_line(sub_img_turn_to_race)
-            if turn_to_race_text == "Race Day":
-                log.debug("URA Debut race day")
-                return 12
-            turn_to_race_text = re.sub("\\D", "", turn_to_race_text)
-            if turn_to_race_text == '':
-                log.warning("URA Debut race date recognition exception")
-                return 12 - (len(ctx.cultivate_detail.turn_info_history) + 1)
-            date_id = 12 - int(turn_to_race_text)
-            if date_id < 1:
-                log.warning("URA Debut race date recognition exception")
-                return 12 - (len(ctx.cultivate_detail.turn_info_history) + 1)
+    if month_text != DATE_MONTH[0]:
+        date_id = DATE_YEAR.index(year_text) * 24 + DATE_MONTH.index(month_text)
+        return date_id
+    else:
+        sub_img_turn_to_race = ctx.cultivate_detail.scenario.get_turn_to_race_img(img)
+        sub_img_turn_to_race = cv2.copyMakeBorder(sub_img_turn_to_race, 20, 20, 20, 20, cv2.BORDER_CONSTANT, None,
+                                                  (255, 255, 255))
+        turn_to_race_text = ocr_line(sub_img_turn_to_race)
+        if turn_to_race_text == "Race Day":
+            log.debug("URA Debut race day")
+            return 12
+        turn_to_race_text = re.sub("\\D", "", turn_to_race_text)
+        if turn_to_race_text == '':
+            log.warning("URA Debut race date recognition exception")
+            return 12 - (len(ctx.cultivate_detail.turn_info_history) + 1)
+        date_id = 12 - int(turn_to_race_text)
+        if date_id < 1:
+            log.warning("URA Debut race date recognition exception")
+            return 12 - (len(ctx.cultivate_detail.turn_info_history) + 1)
         return date_id
 
 
