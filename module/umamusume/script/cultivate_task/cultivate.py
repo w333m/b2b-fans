@@ -808,6 +808,12 @@ def script_cultivate_training_select(ctx: UmamusumeContext):
             else:
                 ties = [i for i, v in enumerate(computed_scores) if abs(v - max_score) < eps]
                 chosen_idx = 4 if 4 in ties else (min(ties) if len(ties) > 0 else int(np.argmax(computed_scores)))
+
+        # Before Junior Make Debut, only speed
+        if ctx.cultivate_detail.turn_info.date <= 11:
+            chosen_idx = 0
+            log.info("Before Junior Make Debut - Speed all the wayyyy")
+
         local_training_type = TrainingType(chosen_idx + 1)
 
 
