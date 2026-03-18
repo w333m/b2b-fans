@@ -400,11 +400,13 @@ def script_cultivate_training_select(ctx: UmamusumeContext):
 
         # Skip training parsing during Pre-Debut, just select Speed
         if date == 1:
-            log.info("Pre-Debut phase - selecting Speed only")
-            ctx.ctrl.click_by_point(TO_TRAINING_SELECT)
+            log.info("Pre-Debut phase - speed is key")
+            img = ctx.ctrl.get_screen()
+            current_train_type = parse_train_type(ctx, img)
+            if current_train_type != TrainingType.TRAINING_TYPE_SPEED:
+                ctx.ctrl.click_by_point(TRAINING_POINT_LIST[0])
+                time.sleep(0.3)
             time.sleep(0.5)
-            ctx.ctrl.click_by_point(TRAINING_POINT_LIST[0])
-            time.sleep(0.3)
             return
 
         def _parse_training_in_thread(ctx, img, train_type):
@@ -1320,30 +1322,43 @@ def script_cultivate_in_race_uma_list(ctx: UmamusumeContext):
 
 def script_in_race(ctx: UmamusumeContext):
     ctx.ctrl.click_by_point(IN_RACE_SKIP)
-
+    time.sleep(0.01)
+    ctx.ctrl.click(719, 1, "Too Slow")
 
 def script_cultivate_race_result(ctx: UmamusumeContext):
     ctx.ctrl.click_by_point(RACE_RESULT_CONFIRM)
+    time.sleep(0.01)
+    ctx.ctrl.click(719, 1, "Too Slow")
 
 
 def script_cultivate_race_reward(ctx: UmamusumeContext):
     ctx.ctrl.click_by_point(RACE_REWARD_CONFIRM)
+    time.sleep(0.01)
+    ctx.ctrl.click(719, 1, "Too Slow")
 
 
 def script_cultivate_goal_achieved(ctx: UmamusumeContext):
     ctx.ctrl.click_by_point(GOAL_ACHIEVE_CONFIRM)
+    time.sleep(0.01)
+    ctx.ctrl.click(719, 1, "Too Slow")
 
 
 def script_cultivate_goal_failed(ctx: UmamusumeContext):
     ctx.ctrl.click_by_point(GOAL_FAIL_CONFIRM)
+    time.sleep(0.01)
+    ctx.ctrl.click(719, 1, "Too Slow")
 
 
 def script_cultivate_next_goal(ctx: UmamusumeContext):
     ctx.ctrl.click_by_point(NEXT_GOAL_CONFIRM)
+    time.sleep(0.01)
+    ctx.ctrl.click(719, 1, "Too Slow")
 
 
 def script_cultivate_extend(ctx: UmamusumeContext):
     ctx.ctrl.click_by_point(CULTIVATE_EXTEND_CONFIRM)
+    time.sleep(0.01)
+    ctx.ctrl.click(719, 1, "Too Slow")
 
 
 def script_cultivate_result(ctx: UmamusumeContext):
@@ -1741,8 +1756,8 @@ def script_cultivate_learn_skill(ctx: UmamusumeContext):
         if not compare_color_equal(img[488, 701], [211, 209, 219]):
             log.debug("🔍 Reached end of skill list page")
             break
-        ctx.ctrl.swipe(x1=23, y1=636, x2=23, y2=1000, duration=1000, name="")
-        time.sleep(1)
+        ctx.ctrl.swipe(x1=23, y1=636, x2=23, y2=1000, duration=100, name="")
+        time.sleep(0.5)
 
     log.debug("Skills to learn: " + str(ctx.cultivate_detail.learn_skill_list))
     log.debug("Skills learned: " + str([skill['skill_name'] for skill in skill_list if not skill['available']]))

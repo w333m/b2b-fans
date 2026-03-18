@@ -229,7 +229,7 @@ def script_info(ctx: UmamusumeContext):
             ctx.ctrl.click_by_point(CULTIVATE_FINISH_RETURN_CONFIRM)
         if title_text == TITLE[7]: #Quick Mode Settings
             ctx.ctrl.click_by_point(SCENARIO_SHORTEN_SET_2)
-            time.sleep(0.5)
+            time.sleep(0.05)
             ctx.ctrl.click_by_point(SCENARIO_SHORTEN_CONFIRM)
         if title_text == TITLE[8]:
             img = ctx.current_screen
